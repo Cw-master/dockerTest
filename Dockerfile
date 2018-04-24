@@ -1,15 +1,29 @@
-#第一行必须指令基于的基础镜像
-From ubutu
+### STAGE 1: Build ###
 
-#维护者信息
-MAINTAINER docker_user  docker_user@mail.com
+# We label our stage as 'builder'
+FROM node:8-alpine as builder
 
-#镜像的操作指令
-#apt/sourcelist.list
+WORKDIR /app
+RUN npm config set user 0
+RUN npm config set unsafe-perm true
+RUN npm install -g hexo-cli
 
+COPY . /app
+RUN npm install
+RUN hexo clean
+RUN hexo g
 
-RUN apt-get update && apt-get install -y ngnix 
-RUN echo "\ndaemon off;">>/etc/ngnix/nignix.conf
+### STAGE 2: Setup ###
 
-#容器启动时执行指令
-CMD /usr/sbin/ngnix
+FROM nginx:1.13.3-alpine
+
+## Copy our default nginx config
+#COPY nginx/conf.d/default.conf /etc/nginx/conf.d/
+
+## Remove default nginx website
+RUN rm -rf /usr/share/nginx/html/*
+
+## From 'builder' stage copy over the artifacts in dist folder to default nginx public folder
+COPY --from=builder /app/public /usr/share/nginx/html
+
+CMD ["nginx", "-g", "daemon off;"]
