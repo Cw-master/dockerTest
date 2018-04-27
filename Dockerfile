@@ -3,9 +3,9 @@
 # We label our stage as 'builder'
 FROM ubuntu
 
-WORKDIR /app
-RUN npm config set user 0
-RUN npm config set unsafe-perm true
+#WORKDIR /app
+#RUN npm config set user 0
+#RUN npm config set unsafe-perm true
 RUN npm install -g hexo-cli
 
 COPY . /app
